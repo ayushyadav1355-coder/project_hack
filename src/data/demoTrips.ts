@@ -1,0 +1,856 @@
+import { Activity, DayItinerary, Trip, TripPreferences } from '../types/travel';
+import { calculateBudget } from '../lib/budgetEngine';
+import { validateItinerary } from '../lib/validationEngine';
+
+export const DEMO_TRIP_TOKYO: Trip = (() => {
+  const preferences: TripPreferences = {
+    startingLocation: 'San Francisco, CA (SFO)',
+    destination: 'Tokyo, Japan',
+    startDate: '2026-10-10',
+    endDate: '2026-10-14',
+    travelersCount: 2,
+    travelerType: 'Couple',
+    totalBudget: 4200,
+    currency: 'USD',
+    preferredTransportation: 'Train',
+    accommodationPreference: 'Boutique Hotel (Shinjuku/Ginza)',
+    interests: ['Culture', 'Food', 'History', 'Photography'],
+    activityIntensity: 'Balanced',
+    dietaryPreferences: 'No seafood allergy; keen on authentic ramen & yakitori',
+    accessibilityRequirements: 'None',
+    specialConstraints: 'Leave buffer for evening dinners',
+    preferredDailyStartTime: '09:00',
+    preferredDailyEndTime: '21:30'
+  };
+
+  const itinerary: DayItinerary[] = [
+    {
+      dayNumber: 1,
+      date: '2026-10-10',
+      theme: 'Historic Asakusa & Sumida River Panorama',
+      summary: 'Explore Tokyo’s oldest Buddhist temple, stroll traditional merchant stalls, and take in the skyline along the river.',
+      activities: [
+        {
+          id: 'tokyo-1-1',
+          dayNumber: 1,
+          name: 'Senso-ji Temple & Kaminarimon Gate',
+          category: 'Culture & History' as const,
+          startTime: '09:30',
+          endTime: '11:00',
+          durationMinutes: 90,
+          location: '2-3-1 Asakusa, Taito City, Tokyo',
+          coordinates: { lat: 35.7148, lng: 139.7967 },
+          estimatedCost: 0,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 25,
+          travelMode: 'Metro (Ginza Line)',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Iconic 7th-century Buddhist landmark that grounds Tokyo’s deep historic heritage.',
+          openingHours: 'Main hall: 06:00 - 17:00; Grounds: 24h',
+          bookingRequired: false,
+          sourceAttribution: 'Tokyo Tourism Board'
+        },
+        {
+          id: 'tokyo-1-2',
+          dayNumber: 1,
+          name: 'Nakamise-dori Artisan Stalls & Matcha Tasting',
+          category: 'Food & Dining' as const,
+          startTime: '11:15',
+          endTime: '12:30',
+          durationMinutes: 75,
+          location: 'Nakamise Shopping Street, Asakusa, Tokyo',
+          coordinates: { lat: 35.7126, lng: 139.7964 },
+          estimatedCost: 28,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 5,
+          travelMode: 'Walking',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Renowned 250m historic market street serving ningyo-yaki cakes and freshly roasted senbei.',
+          openingHours: '10:00 - 18:30',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-1-3',
+          dayNumber: 1,
+          name: 'Sumida Park & Tokyo Skytree Riverside Promenade',
+          category: 'Sightseeing' as const,
+          startTime: '14:00',
+          endTime: '16:00',
+          durationMinutes: 120,
+          location: '1-2-1 Mukojima, Sumida City, Tokyo',
+          coordinates: { lat: 35.7100, lng: 139.8107 },
+          estimatedCost: 35,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Walking across Azuma Bridge',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Wide open riverfront promenade offering unobstructed photo angles of the Skytree tower.',
+          openingHours: 'Park: 24h; Observation Deck: 10:00 - 21:00',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-1-4',
+          dayNumber: 1,
+          name: 'Traditional Soba & Tempura Dinner at Daikokuya',
+          category: 'Food & Dining' as const,
+          startTime: '18:00',
+          endTime: '19:45',
+          durationMinutes: 105,
+          location: '1-38-10 Asakusa, Taito City, Tokyo',
+          coordinates: { lat: 35.7120, lng: 139.7950 },
+          estimatedCost: 55,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 15,
+          travelMode: 'Walking',
+          dataStatus: 'estimated' as const,
+          selectionReason: 'Operating since 1887, acclaimed for its dark sesame-oil tempura bowl.',
+          openingHours: '11:00 - 20:30',
+          bookingRequired: false
+        }
+      ]
+    },
+    {
+      dayNumber: 2,
+      date: '2026-10-11',
+      theme: 'Meiji Shrine, Harajuku Contrasts & Shibuya Crossing',
+      summary: 'Tranquil cedar forest sanctuary contrasted with modern youth fashion, tech, and the bustling Shibuya scramble.',
+      activities: [
+        {
+          id: 'tokyo-2-1',
+          dayNumber: 2,
+          name: 'Meiji Jingu Shrine & Forest Walk',
+          category: 'Culture & History' as const,
+          startTime: '09:00',
+          endTime: '10:45',
+          durationMinutes: 105,
+          location: '1-1 Yoyogikamizonocho, Shibuya City, Tokyo',
+          coordinates: { lat: 35.6764, lng: 139.6993 },
+          estimatedCost: 0,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 25,
+          travelMode: 'JR Yamanote Line',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Peaceful 170-acre evergreen forest sanctuary dedicated to Emperor Meiji.',
+          openingHours: 'Sunrise to Sunset (~05:30 - 17:30)',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-2-2',
+          dayNumber: 2,
+          name: 'Takeshita Street & Cat Street Fashion Discovery',
+          category: 'Shopping' as const,
+          startTime: '11:15',
+          endTime: '12:45',
+          durationMinutes: 90,
+          location: 'Jingumae, Shibuya City, Tokyo',
+          coordinates: { lat: 35.6702, lng: 139.7027 },
+          estimatedCost: 30,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 10,
+          travelMode: 'Walking',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Vibrant epicenter of Japanese street style and boutique designer thrift stores.',
+          openingHours: '10:30 - 20:00',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-2-3',
+          dayNumber: 2,
+          name: 'Shibuya Crossing & Hachiko Memorial',
+          category: 'Sightseeing' as const,
+          startTime: '14:30',
+          endTime: '15:45',
+          durationMinutes: 75,
+          location: '2 Chome Dogenzaka, Shibuya City, Tokyo',
+          coordinates: { lat: 35.6595, lng: 139.7005 },
+          estimatedCost: 0,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 15,
+          travelMode: 'Walking down Meiji-dori',
+          dataStatus: 'verified' as const,
+          selectionReason: 'The world-famous pedestrian intersection and legendary loyalty monument.',
+          openingHours: '24 Hours',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-2-4',
+          dayNumber: 2,
+          name: 'Shibuya Sky 360 Open-Air Observatory',
+          category: 'Sightseeing' as const,
+          startTime: '16:30',
+          endTime: '18:00',
+          durationMinutes: 90,
+          location: 'Shibuya Scramble Square 47F, Tokyo',
+          coordinates: { lat: 35.6585, lng: 139.7022 },
+          estimatedCost: 36,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 10,
+          travelMode: 'Elevator inside Scramble Square',
+          dataStatus: 'needs-verification' as const,
+          selectionReason: 'Breathtaking rooftop observatory with panoramic views over Tokyo Tower and Mt. Fuji at sunset.',
+          openingHours: '10:00 - 22:30 (Sunset slots sell out fast)',
+          bookingRequired: true,
+          notes: 'Pre-booking 4 weeks in advance required for 16:30 - 17:30 sunset slot.'
+        },
+        {
+          id: 'tokyo-2-5',
+          dayNumber: 2,
+          name: 'Nonbei Yokocho (Drunkard\'s Alley) Yakitori Dinner',
+          category: 'Food & Dining' as const,
+          startTime: '19:00',
+          endTime: '20:45',
+          durationMinutes: 105,
+          location: '1-25 Shibuya, Shibuya City, Tokyo',
+          coordinates: { lat: 35.6601, lng: 139.7025 },
+          estimatedCost: 65,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 10,
+          travelMode: 'Walking',
+          dataStatus: 'estimated' as const,
+          selectionReason: 'Atmospheric post-war lantern-lit corridor housing intimate counter-only skewers.',
+          openingHours: '17:30 - 23:00',
+          bookingRequired: false
+        }
+      ]
+    },
+    {
+      dayNumber: 3,
+      date: '2026-10-12',
+      theme: 'Tsukiji Gastronomy & teamLab Immersive Digital Art',
+      summary: 'Fresh sashimi, tamagoyaki breakfast, followed by world-renowned interactive digital installations in Toyosu.',
+      activities: [
+        {
+          id: 'tokyo-3-1',
+          dayNumber: 3,
+          name: 'Tsukiji Outer Market Morning Food Safari',
+          category: 'Food & Dining' as const,
+          startTime: '09:00',
+          endTime: '11:30',
+          durationMinutes: 150,
+          location: '4 Chome Tsukiji, Chuo City, Tokyo',
+          coordinates: { lat: 35.6655, lng: 139.7708 },
+          estimatedCost: 50,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Subway (Oedo Line)',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Bustling food paradise offering freshly flame-torched wagyu, king crab, and rolled omelettes.',
+          openingHours: '08:00 - 14:00 (Best early morning)',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-3-2',
+          dayNumber: 3,
+          name: 'Hamarikyu Gardens & Floating Teahouse',
+          category: 'Nature & Parks' as const,
+          startTime: '12:00',
+          endTime: '13:30',
+          durationMinutes: 90,
+          location: '1-1 Hamarikyuteien, Chuo City, Tokyo',
+          coordinates: { lat: 35.6600, lng: 139.7633 },
+          estimatedCost: 12,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 15,
+          travelMode: 'Walking',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Edo-period feudal garden featuring tidal ponds fed by Tokyo Bay and traditional matcha.',
+          openingHours: '09:00 - 17:00',
+          bookingRequired: false
+        },
+        {
+          id: 'tokyo-3-3',
+          dayNumber: 3,
+          name: 'teamLab Planets TOKYO Digital Art Museum',
+          category: 'Culture & History' as const,
+          startTime: '14:30',
+          endTime: '17:00',
+          durationMinutes: 150,
+          location: '6-1-16 Toyosu, Koto City, Tokyo',
+          coordinates: { lat: 35.6491, lng: 139.7898 },
+          estimatedCost: 68,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 25,
+          travelMode: 'Yurikamome Line Monorail',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Sensory museum where visitors wade through water surrounded by infinite crystal illuminations.',
+          openingHours: '09:00 - 22:00',
+          bookingRequired: true,
+          notes: 'Timed entry ticket mandatory.'
+        },
+        {
+          id: 'tokyo-3-4',
+          dayNumber: 3,
+          name: 'Ginza Six Rooftop Garden & Michelin Tonkatsu Dinner',
+          category: 'Food & Dining' as const,
+          startTime: '18:15',
+          endTime: '20:30',
+          durationMinutes: 135,
+          location: '6-10-1 Ginza, Chuo City, Tokyo',
+          coordinates: { lat: 35.6696, lng: 139.7640 },
+          estimatedCost: 90,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Metro',
+          dataStatus: 'estimated' as const,
+          selectionReason: 'Refined dining in Tokyo’s premier luxury district with architectural rooftop vistas.',
+          openingHours: '11:00 - 23:00',
+          bookingRequired: false
+        }
+      ]
+    }
+  ];
+
+  const allActs = itinerary.flatMap(d => d.activities);
+  const budget = calculateBudget(allActs, preferences);
+  const validation = validateItinerary(itinerary, preferences, budget);
+
+  return {
+    id: 'demo-tokyo-trip',
+    createdAt: '2026-09-15T10:00:00.000Z',
+    updatedAt: '2026-09-18T14:30:00.000Z',
+    name: 'Tokyo Cultural & Culinary Explorer',
+    isDemo: true,
+    preferences,
+    itinerary,
+    budget,
+    validation,
+    disruptions: [],
+    revisions: [],
+    chatHistory: [
+      {
+        id: 'msg-demo-1',
+        role: 'assistant',
+        content: 'Welcome to your Tokyo Cultural & Culinary Explorer plan! I have structured this trip to balance historic shrines, vibrant neighborhood food walks, and timed-entry highlights like teamLab and Shibuya Sky. If any transit delays or weather changes occur during your journey, click "Report Disruption" to trigger an instant local repair.',
+        timestamp: '2026-09-18T14:30:00.000Z'
+      }
+    ]
+  };
+})();
+
+export const DEMO_TRIP_SWISS: Trip = (() => {
+  const preferences: TripPreferences = {
+    startingLocation: 'London St Pancras, UK',
+    destination: 'Interlaken & Jungfrau, Switzerland',
+    startDate: '2026-11-04',
+    endDate: '2026-11-07',
+    travelersCount: 1,
+    travelerType: 'Solo',
+    totalBudget: 2800,
+    currency: 'USD',
+    preferredTransportation: 'Train',
+    accommodationPreference: 'Alpine Chalet / Lodge',
+    interests: ['Nature & Parks', 'Adventure', 'Photography'],
+    activityIntensity: 'Packed',
+    dietaryPreferences: 'Vegetarian friendly',
+    accessibilityRequirements: 'None',
+    specialConstraints: 'Alpine weather dependent',
+    preferredDailyStartTime: '08:30',
+    preferredDailyEndTime: '20:30'
+  };
+
+  const itinerary: DayItinerary[] = [
+    {
+      dayNumber: 1,
+      date: '2026-11-04',
+      theme: 'Arrival via GoldenPass Line & Lake Brienz Cruise',
+      summary: 'Scenic panoramic train route into Interlaken followed by turquoise glacial lake sailing.',
+      activities: [
+        {
+          id: 'swiss-1-1',
+          dayNumber: 1,
+          name: 'GoldenPass Panoramic Express Arrival',
+          category: 'Transit' as const,
+          startTime: '09:00',
+          endTime: '11:15',
+          durationMinutes: 135,
+          location: 'Interlaken Ost Station, Bernese Oberland',
+          coordinates: { lat: 46.6906, lng: 7.8696 },
+          estimatedCost: 75,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 0,
+          travelMode: 'SBB Panoramic Train',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Breathtaking alpine passage along high mountain passes with floor-to-ceiling glass.',
+          openingHours: 'Daily scheduled departures',
+          bookingRequired: true
+        },
+        {
+          id: 'swiss-1-2',
+          dayNumber: 1,
+          name: 'Lake Brienz Glacial Steamboat Cruise',
+          category: 'Nature & Parks' as const,
+          startTime: '12:00',
+          endTime: '14:30',
+          durationMinutes: 150,
+          location: 'Interlaken Ost Pier to Giessbach Falls',
+          coordinates: { lat: 46.7356, lng: 8.0242 },
+          estimatedCost: 42,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 15,
+          travelMode: 'Walking from station',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Remarkable turquoise glacier-fed waters framed by steep mountain cliffs and Giessbach Falls.',
+          openingHours: 'Seasonal timetable',
+          bookingRequired: false
+        },
+        {
+          id: 'swiss-1-3',
+          dayNumber: 1,
+          name: 'Harder Kulm Funicular & Top of Interlaken Viewpoint',
+          category: 'Sightseeing' as const,
+          startTime: '16:00',
+          endTime: '18:30',
+          durationMinutes: 150,
+          location: 'Harderbahn Station, Interlaken',
+          coordinates: { lat: 46.6980, lng: 7.8540 },
+          estimatedCost: 40,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Funicular railway',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Two-Lakes bridge projecting over a 1,322-meter cliff overlooking the Eiger, Mönch, and Jungfrau peaks.',
+          openingHours: '09:10 - 21:40',
+          bookingRequired: false
+        }
+      ]
+    },
+    {
+      dayNumber: 2,
+      date: '2026-11-05',
+      theme: 'Jungfraujoch — Top of Europe High Alpine Expedition',
+      summary: 'Ascend Europe’s highest railway station, walk through the Ice Palace, and view Aletsch Glacier.',
+      activities: [
+        {
+          id: 'swiss-2-1',
+          dayNumber: 2,
+          name: 'Eiger Express Tricable Gondola & Cogwheel Train',
+          category: 'Adventure' as const,
+          startTime: '08:45',
+          endTime: '10:30',
+          durationMinutes: 105,
+          location: 'Grindelwald Terminal to Jungfraujoch (3,454m)',
+          coordinates: { lat: 46.5475, lng: 7.9825 },
+          estimatedCost: 195,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 30,
+          travelMode: 'High-speed Eiger Express',
+          dataStatus: 'verified' as const,
+          selectionReason: 'State-of-the-art alpine engineering carrying travelers to the UNESCO World Heritage alpine zone.',
+          openingHours: '08:00 - 16:30',
+          bookingRequired: true,
+          notes: 'Alpine weather can close outdoor plateau. Check morning webcam.'
+        },
+        {
+          id: 'swiss-2-2',
+          dayNumber: 2,
+          name: 'Ice Palace Sculptures & Sphinx Observation Deck',
+          category: 'Sightseeing' as const,
+          startTime: '10:45',
+          endTime: '13:45',
+          durationMinutes: 180,
+          location: 'Jungfraujoch Summit Complex',
+          coordinates: { lat: 46.5475, lng: 7.9825 },
+          estimatedCost: 0,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 5,
+          travelMode: 'Summit tunnels',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Glacial caverns carved 30 meters beneath the Aletsch Glacier ice field.',
+          openingHours: '09:00 - 16:00',
+          bookingRequired: false
+        },
+        {
+          id: 'swiss-2-3',
+          dayNumber: 2,
+          name: 'Lauterbrunnen Valley & Staubbach Falls Walk',
+          category: 'Nature & Parks' as const,
+          startTime: '15:30',
+          endTime: '17:45',
+          durationMinutes: 135,
+          location: 'Lauterbrunnen Valley, Bernese Oberland',
+          coordinates: { lat: 46.5935, lng: 7.9077 },
+          estimatedCost: 0,
+          currency: 'USD',
+          travelTimeFromPreviousMinutes: 45,
+          travelMode: 'Wengernalp Railway descent',
+          dataStatus: 'verified' as const,
+          selectionReason: 'Tolkien-inspiring valley of 72 cascading waterfalls beneath sheer limestone walls.',
+          openingHours: '24h',
+          bookingRequired: false
+        }
+      ]
+    }
+  ];
+
+  const allActs = itinerary.flatMap(d => d.activities);
+  const budget = calculateBudget(allActs, preferences);
+  const validation = validateItinerary(itinerary, preferences, budget);
+
+  return {
+    id: 'demo-swiss-trip',
+    createdAt: '2026-09-16T12:00:00.000Z',
+    updatedAt: '2026-09-18T16:00:00.000Z',
+    name: 'Swiss Alps Scenic Rail & Adventure',
+    isDemo: true,
+    preferences,
+    itinerary,
+    budget,
+    validation,
+    disruptions: [],
+    revisions: [],
+    chatHistory: [
+      {
+        id: 'msg-demo-swiss-1',
+        role: 'assistant',
+        content: 'Hi! I’ve created this alpine itinerary for Interlaken and Jungfraujoch. Note that high alpine conditions can shift rapidly; if cable cars or mountain trains experience maintenance or weather holds, I will dynamically adjust your route down into Lauterbrunnen Valley.',
+        timestamp: '2026-09-18T16:00:00.000Z'
+      }
+    ]
+  };
+})();
+
+export const DEMO_TRIP_JAIPUR: Trip = (() => {
+  const preferences: TripPreferences = {
+    startingLocation: 'New Delhi (DEL)',
+    destination: 'Jaipur, Rajasthan, India',
+    startDate: '2026-11-10',
+    endDate: '2026-11-12',
+    travelersCount: 2,
+    travelerType: 'Couple',
+    totalBudget: 48000,
+    currency: 'INR',
+    preferredTransportation: 'Train',
+    accommodationPreference: 'Heritage Haveli (Bani Park / Old City)',
+    interests: ['Culture', 'History', 'Architecture', 'Food & Dining', 'Photography'],
+    activityIntensity: 'Balanced',
+    dietaryPreferences: 'Vegetarian friendly, authentic Rajasthani (Dal Baati Churma, Pyaaz Kachori, Ghewar)',
+    accessibilityRequirements: 'None',
+    specialConstraints: 'Protect afternoon rest buffer; evening sunset vantage points prioritized',
+    preferredDailyStartTime: '09:00',
+    preferredDailyEndTime: '21:30'
+  };
+
+  const itinerary: DayItinerary[] = [
+    {
+      dayNumber: 1,
+      date: '2026-11-10',
+      theme: 'Royal Amer Fort & Lake Heritage',
+      summary: 'Explore the Rajput architectural stronghold of Amer Fort, the mirror palace, hand-block printing, and twilight views at Jal Mahal.',
+      activities: [
+        {
+          id: 'jaipur-1-1',
+          dayNumber: 1,
+          name: 'Amer Fort (Amber Palace) & Sheesh Mahal',
+          category: 'Culture & History',
+          startTime: '09:30',
+          endTime: '12:30',
+          durationMinutes: 180,
+          location: 'Devisinghpura, Amer, Jaipur, Rajasthan 302001',
+          coordinates: { lat: 26.9855, lng: 75.8513 },
+          estimatedCost: 1000,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 25,
+          travelMode: 'Express Cab / Auto',
+          dataStatus: 'verified',
+          selectionReason: 'UNESCO World Heritage hill fort famous for majestic red sandstone and mirror mosaics.',
+          openingHours: '09:00 - 17:30',
+          bookingRequired: false,
+          sourceAttribution: 'Rajasthan State Department of Archaeology'
+        },
+        {
+          id: 'jaipur-1-2',
+          dayNumber: 1,
+          name: 'Anokhi Museum of Hand Printing Workshop',
+          category: 'Culture & History',
+          startTime: '12:45',
+          endTime: '14:00',
+          durationMinutes: 75,
+          location: 'Anokhi Haveli, Kheri Gate, Amer, Jaipur',
+          coordinates: { lat: 26.9890, lng: 75.8520 },
+          estimatedCost: 200,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 10,
+          travelMode: 'Walking',
+          dataStatus: 'verified',
+          selectionReason: 'Preserves traditional Rajasthani woodblock carving and natural dye textile printing.',
+          openingHours: '10:30 - 17:00 (Closed Mondays)',
+          bookingRequired: false
+        },
+        {
+          id: 'jaipur-1-3',
+          dayNumber: 1,
+          name: 'Traditional Royal Rajasthani Lunch at 1135 AD',
+          category: 'Food & Dining',
+          startTime: '14:15',
+          endTime: '15:45',
+          durationMinutes: 90,
+          location: 'Amer Fort Upper Level, Amer, Jaipur',
+          coordinates: { lat: 26.9860, lng: 75.8515 },
+          estimatedCost: 2400,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 10,
+          travelMode: 'Walking',
+          dataStatus: 'estimated',
+          selectionReason: 'Heritage palace dining experience offering authentic Lal Maas and royal vegetarian thalis.',
+          openingHours: '12:00 - 22:30'
+        },
+        {
+          id: 'jaipur-1-4',
+          dayNumber: 1,
+          name: 'Jal Mahal (Water Palace) Promenade & Photo Stop',
+          category: 'Sightseeing',
+          startTime: '16:15',
+          endTime: '17:15',
+          durationMinutes: 60,
+          location: 'Amer Road, Man Sagar Lake, Jaipur',
+          coordinates: { lat: 26.9656, lng: 75.8457 },
+          estimatedCost: 0,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Auto-Rickshaw',
+          dataStatus: 'verified',
+          selectionReason: 'Stunning 18th-century palace submerged in Man Sagar Lake surrounded by the Aravalli range.',
+          openingHours: 'Viewable from lake embankment 24h'
+        },
+        {
+          id: 'jaipur-1-5',
+          dayNumber: 1,
+          name: 'Amer Fort Sound & Light Evening Spectacular',
+          category: 'Entertainment',
+          startTime: '18:30',
+          endTime: '20:30',
+          durationMinutes: 120,
+          location: 'Kesar Kyari Garden, Amer Fort, Jaipur',
+          coordinates: { lat: 26.9855, lng: 75.8513 },
+          estimatedCost: 600,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Auto-Rickshaw',
+          dataStatus: 'verified',
+          selectionReason: 'Narrates the 600-year history of the Kachwaha rulers beneath illuminated battlements.',
+          openingHours: 'English show: 19:30 - 20:30'
+        }
+      ]
+    },
+    {
+      dayNumber: 2,
+      date: '2026-11-11',
+      theme: 'The Walled Pink City, Royal Palaces & Astronomy',
+      summary: 'Explore the heart of the historic Old City: City Palace courtyards, the UNESCO Jantar Mantar sundials, and Hawa Mahal.',
+      activities: [
+        {
+          id: 'jaipur-2-1',
+          dayNumber: 2,
+          name: 'City Palace & Chandra Mahal Heritage Complex',
+          category: 'Culture & History',
+          startTime: '09:30',
+          endTime: '11:45',
+          durationMinutes: 135,
+          location: 'Tulsi Marg, Gangori Bazaar, J.D.A. Market, Jaipur',
+          coordinates: { lat: 26.9258, lng: 75.8237 },
+          estimatedCost: 1400,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'City Transit / Cab',
+          dataStatus: 'verified',
+          selectionReason: 'Seat of the Maharaja of Jaipur featuring Peacock Gate courtyards and royal armory.',
+          openingHours: '09:30 - 17:00',
+          bookingRequired: false
+        },
+        {
+          id: 'jaipur-2-2',
+          dayNumber: 2,
+          name: 'Jantar Mantar UNESCO Astronomical Observatory',
+          category: 'Culture & History',
+          startTime: '12:00',
+          endTime: '13:30',
+          durationMinutes: 90,
+          location: 'Gangori Bazaar, J.D.A. Market, Pink City, Jaipur',
+          coordinates: { lat: 26.9248, lng: 75.8246 },
+          estimatedCost: 400,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 5,
+          travelMode: 'Walking',
+          dataStatus: 'verified',
+          selectionReason: 'The world’s largest stone astronomical sundial built by Sawai Jai Singh II in 1734.',
+          openingHours: '09:00 - 17:00'
+        },
+        {
+          id: 'jaipur-2-3',
+          dayNumber: 2,
+          name: 'Laxmi Mishtan Bhandar (LMB) Johari Bazaar Lunch',
+          category: 'Food & Dining',
+          startTime: '13:45',
+          endTime: '15:15',
+          durationMinutes: 90,
+          location: '98-99, Johari Bazaar Road, Pink City, Jaipur',
+          coordinates: { lat: 26.9220, lng: 75.8260 },
+          estimatedCost: 1600,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 10,
+          travelMode: 'Walking',
+          dataStatus: 'estimated',
+          selectionReason: 'Iconic heritage eatery since 1928 renowned for crispy pyaaz kachoris and paneer ghewar.',
+          openingHours: '08:00 - 22:00'
+        },
+        {
+          id: 'jaipur-2-4',
+          dayNumber: 2,
+          name: 'Hawa Mahal (Palace of Winds) & High Pavilion',
+          category: 'Sightseeing',
+          startTime: '15:30',
+          endTime: '17:00',
+          durationMinutes: 90,
+          location: 'Hawa Mahal Rd, Badi Choupad, J.D.A. Market, Jaipur',
+          coordinates: { lat: 26.9239, lng: 75.8267 },
+          estimatedCost: 400,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 8,
+          travelMode: 'Walking',
+          dataStatus: 'verified',
+          selectionReason: 'Five-story pink sandstone honeycomb facade with 953 jharokhas built for royal women.',
+          openingHours: '09:00 - 17:00'
+        },
+        {
+          id: 'jaipur-2-5',
+          dayNumber: 2,
+          name: 'Johari & Bapu Bazaar Guided Handicrafts & Spice Walk',
+          category: 'Shopping',
+          startTime: '17:15',
+          endTime: '19:15',
+          durationMinutes: 120,
+          location: 'Johari Bazaar & Bapu Bazaar, Pink City, Jaipur',
+          coordinates: { lat: 26.9215, lng: 75.8250 },
+          estimatedCost: 500,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 5,
+          travelMode: 'Walking',
+          dataStatus: 'verified',
+          selectionReason: 'Historic arcaded bazaars for lac bangles, Jaipuri quilts, and hand-embroidered textiles.'
+        }
+      ]
+    },
+    {
+      dayNumber: 3,
+      date: '2026-11-12',
+      theme: 'Aravalli Fortified Ridges & Folk Living Culture',
+      summary: 'Ascend to Nahargarh Fort for expansive vistas of the Pink City, admire Albert Hall, and conclude with Rajasthani folk culture.',
+      activities: [
+        {
+          id: 'jaipur-3-1',
+          dayNumber: 3,
+          name: 'Albert Hall Museum (Central State Museum)',
+          category: 'Culture & History',
+          startTime: '09:30',
+          endTime: '11:30',
+          durationMinutes: 120,
+          location: 'Ram Niwas Garden, Kailash Puri, Adarsh Nagar, Jaipur',
+          coordinates: { lat: 26.9116, lng: 75.8195 },
+          estimatedCost: 600,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 15,
+          travelMode: 'Auto-Rickshaw',
+          dataStatus: 'verified',
+          selectionReason: 'Oldest museum in Rajasthan showcasing miniature paintings, Persian carpets, and armor.',
+          openingHours: '09:00 - 17:00'
+        },
+        {
+          id: 'jaipur-3-2',
+          dayNumber: 3,
+          name: 'Jaipur Traditional Blue Pottery Demonstration',
+          category: 'Culture & History',
+          startTime: '12:00',
+          endTime: '13:30',
+          durationMinutes: 90,
+          location: 'Kripal Kumbh Workshop, Bani Park, Jaipur',
+          coordinates: { lat: 26.9280, lng: 75.7950 },
+          estimatedCost: 300,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 20,
+          travelMode: 'Auto-Rickshaw',
+          dataStatus: 'verified',
+          selectionReason: 'Turquoise quartz-based pottery technique revived by Padma Shri Kripal Singh Shekhawat.'
+        },
+        {
+          id: 'jaipur-3-3',
+          dayNumber: 3,
+          name: 'Artisan Garden Lunch at Baradari',
+          category: 'Food & Dining',
+          startTime: '13:45',
+          endTime: '15:15',
+          durationMinutes: 90,
+          location: 'Jaleb Chowk, City Palace Courtyard, Jaipur',
+          coordinates: { lat: 26.9262, lng: 75.8239 },
+          estimatedCost: 1800,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 15,
+          travelMode: 'Auto-Rickshaw',
+          dataStatus: 'estimated',
+          selectionReason: 'Contemporary Rajasthani cuisine served inside restored royal palace marble colonnades.'
+        },
+        {
+          id: 'jaipur-3-4',
+          dayNumber: 3,
+          name: 'Nahargarh Fort Sunset Battlements over Pink City',
+          category: 'Sightseeing',
+          startTime: '16:00',
+          endTime: '18:30',
+          durationMinutes: 150,
+          location: 'Krishna Nagar, Brahampuri, Jaipur, Rajasthan 302002',
+          coordinates: { lat: 26.9372, lng: 75.8155 },
+          estimatedCost: 400,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 25,
+          travelMode: 'Hired Cab Up Ridge',
+          dataStatus: 'verified',
+          selectionReason: 'Cliffside defense fort offering the most iconic panoramic sunset vista overlooking Jaipur.',
+          openingHours: '10:00 - 17:30'
+        },
+        {
+          id: 'jaipur-3-5',
+          dayNumber: 3,
+          name: 'Chokhi Dhani Ethnic Village Resort & Folk Feast',
+          category: 'Entertainment',
+          startTime: '19:30',
+          endTime: '21:45',
+          durationMinutes: 135,
+          location: '12 Miles, Tonk Road, Via Vatika, Jaipur',
+          coordinates: { lat: 26.7663, lng: 75.8364 },
+          estimatedCost: 2600,
+          currency: 'INR',
+          travelTimeFromPreviousMinutes: 35,
+          travelMode: 'Express Taxi',
+          dataStatus: 'verified',
+          selectionReason: 'Living Rajasthani culture with Kalbelia dancers, puppet plays, pottery, and traditional sit-down feast.'
+        }
+      ]
+    }
+  ];
+
+  const allActs = itinerary.flatMap(d => d.activities);
+  const budget = calculateBudget(allActs, preferences);
+  const validation = validateItinerary(itinerary, preferences, budget);
+
+  return {
+    id: 'demo-jaipur-trip',
+    createdAt: '2026-09-17T10:00:00.000Z',
+    updatedAt: '2026-09-19T08:00:00.000Z',
+    name: 'Jaipur Cultural & Heritage Journey',
+    isDemo: true,
+    preferences,
+    itinerary,
+    budget,
+    validation,
+    disruptions: [],
+    revisions: [],
+    chatHistory: [
+      {
+        id: 'msg-demo-jaipur-1',
+        role: 'assistant',
+        content: 'Namaste! I’ve crafted your 3-day cultural journey across Jaipur (Pink City). All historic monuments, UNESCO sites, and Rajasthani dining venues have been clustered geographically to minimize transit in city traffic. Should any rail transit or road closures occur, use "Report Disruption" to apply Local Repair.',
+        timestamp: '2026-09-19T08:00:00.000Z'
+      }
+    ]
+  };
+})();
+

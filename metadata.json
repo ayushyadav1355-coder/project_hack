@@ -1,0 +1,6 @@
+{
+  "name": "TravelPilot",
+  "description": "Intelligent trip planning and disruption management agent that adapts in real time.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
