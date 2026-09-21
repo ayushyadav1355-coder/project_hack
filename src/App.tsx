@@ -14,8 +14,7 @@ import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 export default function App() {
   const [savedTrips, setSavedTrips] = useState<Trip[]>([DEMO_TRIP_TOKYO, DEMO_TRIP_SWISS, DEMO_TRIP_JAIPUR]);
   const [currentTrip, setCurrentTrip] = useState<Trip | null>(DEMO_TRIP_TOKYO);
-  const [activeView, setActiveView] = useState<'landing' | 'dashboard'>('dashboard');
-
+const [activeView, setActiveView] = useState<'landing' | 'dashboard'>('landing');
   // Modals & Drawers
   const [isNewTripModalOpen, setIsNewTripModalOpen] = useState(false);
   const [isDisruptionModalOpen, setIsDisruptionModalOpen] = useState(false);
